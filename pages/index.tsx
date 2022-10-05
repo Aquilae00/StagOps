@@ -1,10 +1,12 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from '../styles/Home.module.css';
 import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
 import { POI } from '../utils/poi';
+import { AiOutlineMenu } from 'react-icons/ai';
+import { FaUserSecret } from 'react-icons/fa';
 mapboxgl.accessToken =
   'pk.eyJ1IjoibGluYWxkaTI5MDMiLCJhIjoiY2w4ZG5xY2d5MGthYjNuazliN2V4NDF4dSJ9.k3wwFkKbJ0kJp2j-SoUSgQ';
 const Home: NextPage = () => {
@@ -13,6 +15,42 @@ const Home: NextPage = () => {
   const [lng, setLng] = useState(-73.039319);
   const [lat, setLat] = useState(42.062911);
   const [zoom, setZoom] = useState(16);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+  const [useAlias, setUseAlias] = useState(false);
+
+  const places = useMemo(
+    () => ({
+      type: 'FeatureCollection',
+      features: POI.map((p) => ({
+        type: 'Feature',
+        properties: { description: p.name, icon: `${p.icon}-15` },
+        geometry: { type: 'Point', coordinates: [p.long, p.lat] }
+      }))
+    }),
+    []
+  );
+  const places2 = useMemo(
+    () => ({
+      type: 'FeatureCollection',
+      features: POI.map((p) => ({
+        type: 'Feature',
+        properties: { description: p.alias, icon: `${p.icon}-15` },
+        geometry: { type: 'Point', coordinates: [p.long, p.lat] }
+      }))
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if (!map.current) return;
+    const geojsonSource = map.current.getSource('places');
+    if (!geojsonSource) return;
+    if (useAlias) {
+      geojsonSource.setData(places2);
+    } else {
+      geojsonSource.setData(places);
+    }
+  }, [places, places2, useAlias]);
   useEffect(() => {
     if (map.current) return; // initialize map only once
     const mapgl = new mapboxgl.Map({
@@ -22,15 +60,6 @@ const Home: NextPage = () => {
       zoom: zoom,
       antialias: true
     });
-
-    const places = {
-      type: 'FeatureCollection',
-      features: POI.map((p) => ({
-        type: 'Feature',
-        properties: { description: p.name, icon: `${p.icon}-15` },
-        geometry: { type: 'Point', coordinates: [p.long, p.lat] }
-      }))
-    };
 
     mapgl.on('load', () => {
       mapgl.addSource('places', {
@@ -65,44 +94,6 @@ const Home: NextPage = () => {
       const labelLayerId = layers.find(
         (layer) => layer.type === 'symbol' && layer.layout['text-field']
       )?.id;
-
-      // mapgl.addLayer(
-      //   {
-      //     id: 'add-3d-buildings',
-      //     source: 'composite',
-      //     'source-layer': 'building',
-      //     filter: ['==', 'extrude', 'true'],
-      //     type: 'fill-extrusion',
-      //     minzoom: 15,
-      //     paint: {
-      //       'fill-extrusion-color': '#aaa',
-
-      //       // Use an 'interpolate' expression to
-      //       // add a smooth transition effect to
-      //       // the buildings as the user zooms in.
-      //       'fill-extrusion-height': [
-      //         'interpolate',
-      //         ['linear'],
-      //         ['zoom'],
-      //         15,
-      //         0,
-      //         15.05,
-      //         ['get', 'height']
-      //       ],
-      //       'fill-extrusion-base': [
-      //         'interpolate',
-      //         ['linear'],
-      //         ['zoom'],
-      //         15,
-      //         0,
-      //         15.05,
-      //         ['get', 'min_height']
-      //       ],
-      //       'fill-extrusion-opacity': 0.6
-      //     }
-      //   },
-      //   labelLayerId
-      // );
     });
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: {
@@ -117,22 +108,28 @@ const Home: NextPage = () => {
     geolocate.on('geolocate', (data) => {
       console.log(data);
     });
-    // Set marker options.
-    // POI.forEach((p) => {
-    //   const popup = new mapboxgl.Popup({ offset: 25 }).setText(p.name);
-    //   new mapboxgl.Marker({
-    //     color: '#FFFFFF',
-    //     draggable: true
-    //   })
-    //     .setLngLat([p.long, p.lat])
-    //     .setPopup(popup)
-    //     .addTo(mapgl);
-    // });
     map.current = mapgl;
   });
   return (
     <div>
       <div ref={mapContainer} className="map-container" />
+
+      <button
+        type="button"
+        className="fixed relative rounded-full bg-white p-sm left-4 bottom-12 text-black"
+        onClick={() => setIsMenuExpanded(!isMenuExpanded)}>
+        <AiOutlineMenu />
+        {isMenuExpanded && (
+          <div className="flex flex-col mb-2xs absolute bottom-full left-1/2 -translate-x-1/2">
+            <button
+              type="button"
+              className=" rounded-full bg-white p-sm   "
+              onClick={() => setUseAlias(!useAlias)}>
+              <FaUserSecret className={`${useAlias ? 'text-gray-500' : ''}`} />
+            </button>
+          </div>
+        )}
+      </button>
     </div>
   );
 };

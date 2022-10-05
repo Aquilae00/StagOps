@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 html,
 body {
     padding: 0;
@@ -39,4 +42,8 @@ a {
     height: 50px;
     border-radius: 50%;
     cursor: pointer;
+}
+
+.mapboxgl-ctrl-logo {
+    display: none !important;
 }
