@@ -64,7 +64,7 @@ const Home: NextPage = () => {
     mapgl.on('load', () => {
       mapgl.addSource('places', {
         type: 'geojson',
-        data: places
+        data: places as any
       });
 
       mapgl.addLayer({
@@ -89,11 +89,16 @@ const Home: NextPage = () => {
         maxzoom: 14
       });
       // add the DEM source as a terrain layer with exaggerated height
-      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 1.8 });
-      const layers = mapgl.getStyle().layers;
-      const labelLayerId = layers.find(
-        (layer) => layer.type === 'symbol' && layer.layout['text-field']
-      )?.id;
+      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+
+      // add sky styling with `setFog` that will show when the map is highly pitched
+      mapgl.setFog({
+        'horizon-blend': 0.3,
+        color: '#f8f0e3',
+        'high-color': '#add8e6',
+        'space-color': '#d8f2ff',
+        'star-intensity': 0.0
+      } as any);
     });
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: {
