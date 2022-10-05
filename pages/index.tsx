@@ -91,7 +91,7 @@ const Home: NextPage = () => {
         maxzoom: 14
       });
       // add the DEM source as a terrain layer with exaggerated height
-      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 2 });
 
       // add sky styling with `setFog` that will show when the map is highly pitched
       mapgl.setFog({
@@ -131,7 +131,7 @@ const Home: NextPage = () => {
         onClick={() => setIsMenuExpanded(!isMenuExpanded)}>
         <AiOutlineMenu />
         {isMenuExpanded && (
-          <div className="flex flex-col mb-2xs absolute bottom-full left-1/2 -translate-x-1/2 space-y-sm">
+          <div className="flex flex-col mb-xs absolute bottom-full left-1/2 -translate-x-1/2 space-y-xs">
             <button
               type="button"
               className=" rounded-full bg-white p-sm   "
@@ -150,7 +150,7 @@ const Home: NextPage = () => {
                   //respect to prefers-reduced-motion
                 });
               }}>
-              <FaRedo className={`${useAlias ? 'text-gray-500' : ''}`} />
+              <FaRedo />
             </button>
           </div>
         )}
