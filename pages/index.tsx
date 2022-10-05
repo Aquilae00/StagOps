@@ -17,13 +17,42 @@ const Home: NextPage = () => {
     if (map.current) return; // initialize map only once
     const mapgl = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v11',
+      style: 'mapbox://styles/mapbox/satellite-v9',
       center: [lng, lat],
       zoom: zoom,
       antialias: true
     });
 
+    const places = {
+      type: 'FeatureCollection',
+      features: POI.map((p) => ({
+        type: 'Feature',
+        properties: { description: p.name, icon: `${p.icon}-15` },
+        geometry: { type: 'Point', coordinates: [p.long, p.lat] }
+      }))
+    };
+
     mapgl.on('load', () => {
+      mapgl.addSource('places', {
+        type: 'geojson',
+        data: places
+      });
+
+      mapgl.addLayer({
+        id: 'poi-labels',
+        type: 'symbol',
+        source: 'places',
+        layout: {
+          'text-field': ['get', 'description'],
+          'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+          'text-radial-offset': 0.5,
+          'text-justify': 'auto',
+          'icon-image': ['get', 'icon']
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
       mapgl.addSource('mapbox-dem', {
         type: 'raster-dem',
         url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -31,49 +60,49 @@ const Home: NextPage = () => {
         maxzoom: 14
       });
       // add the DEM source as a terrain layer with exaggerated height
-      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+      mapgl.setTerrain({ source: 'mapbox-dem', exaggeration: 1.8 });
       const layers = mapgl.getStyle().layers;
       const labelLayerId = layers.find(
         (layer) => layer.type === 'symbol' && layer.layout['text-field']
       )?.id;
 
-      mapgl.addLayer(
-        {
-          id: 'add-3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 15,
-          paint: {
-            'fill-extrusion-color': '#aaa',
+      // mapgl.addLayer(
+      //   {
+      //     id: 'add-3d-buildings',
+      //     source: 'composite',
+      //     'source-layer': 'building',
+      //     filter: ['==', 'extrude', 'true'],
+      //     type: 'fill-extrusion',
+      //     minzoom: 15,
+      //     paint: {
+      //       'fill-extrusion-color': '#aaa',
 
-            // Use an 'interpolate' expression to
-            // add a smooth transition effect to
-            // the buildings as the user zooms in.
-            'fill-extrusion-height': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              15,
-              0,
-              15.05,
-              ['get', 'height']
-            ],
-            'fill-extrusion-base': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              15,
-              0,
-              15.05,
-              ['get', 'min_height']
-            ],
-            'fill-extrusion-opacity': 0.6
-          }
-        },
-        labelLayerId
-      );
+      //       // Use an 'interpolate' expression to
+      //       // add a smooth transition effect to
+      //       // the buildings as the user zooms in.
+      //       'fill-extrusion-height': [
+      //         'interpolate',
+      //         ['linear'],
+      //         ['zoom'],
+      //         15,
+      //         0,
+      //         15.05,
+      //         ['get', 'height']
+      //       ],
+      //       'fill-extrusion-base': [
+      //         'interpolate',
+      //         ['linear'],
+      //         ['zoom'],
+      //         15,
+      //         0,
+      //         15.05,
+      //         ['get', 'min_height']
+      //       ],
+      //       'fill-extrusion-opacity': 0.6
+      //     }
+      //   },
+      //   labelLayerId
+      // );
     });
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: {
@@ -89,14 +118,16 @@ const Home: NextPage = () => {
       console.log(data);
     });
     // Set marker options.
-    POI.forEach((p) =>
-      new mapboxgl.Marker({
-        color: '#FFFFFF',
-        draggable: true
-      })
-        .setLngLat([p.long, p.lat])
-        .addTo(mapgl)
-    );
+    // POI.forEach((p) => {
+    //   const popup = new mapboxgl.Popup({ offset: 25 }).setText(p.name);
+    //   new mapboxgl.Marker({
+    //     color: '#FFFFFF',
+    //     draggable: true
+    //   })
+    //     .setLngLat([p.long, p.lat])
+    //     .setPopup(popup)
+    //     .addTo(mapgl);
+    // });
     map.current = mapgl;
   });
   return (
