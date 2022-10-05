@@ -6,7 +6,7 @@ import styles from '../styles/Home.module.css';
 import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
 import { POI } from '../utils/poi';
 import { AiOutlineMenu } from 'react-icons/ai';
-import { FaUserSecret } from 'react-icons/fa';
+import { FaRedo, FaUserSecret } from 'react-icons/fa';
 mapboxgl.accessToken =
   'pk.eyJ1IjoibGluYWxkaTI5MDMiLCJhIjoiY2w4ZG5xY2d5MGthYjNuazliN2V4NDF4dSJ9.k3wwFkKbJ0kJp2j-SoUSgQ';
 const Home: NextPage = () => {
@@ -76,6 +76,8 @@ const Home: NextPage = () => {
           'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
           'text-radial-offset': 0.5,
           'text-justify': 'auto',
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
           'icon-image': ['get', 'icon']
         },
         paint: {
@@ -110,6 +112,10 @@ const Home: NextPage = () => {
       showUserHeading: true
     });
     mapgl.addControl(geolocate);
+
+    const nav = new mapboxgl.NavigationControl({ visualizePitch: true });
+    mapgl.addControl(nav, 'top-left');
+
     geolocate.on('geolocate', (data) => {
       console.log(data);
     });
@@ -125,12 +131,26 @@ const Home: NextPage = () => {
         onClick={() => setIsMenuExpanded(!isMenuExpanded)}>
         <AiOutlineMenu />
         {isMenuExpanded && (
-          <div className="flex flex-col mb-2xs absolute bottom-full left-1/2 -translate-x-1/2">
+          <div className="flex flex-col mb-2xs absolute bottom-full left-1/2 -translate-x-1/2 space-y-sm">
             <button
               type="button"
               className=" rounded-full bg-white p-sm   "
               onClick={() => setUseAlias(!useAlias)}>
               <FaUserSecret className={`${useAlias ? 'text-gray-500' : ''}`} />
+            </button>
+            <button
+              type="button"
+              className=" rounded-full bg-white p-sm   "
+              onClick={() => {
+                map.current.flyTo({
+                  center: [lng, lat],
+                  zoom: zoom,
+                  duration: 1000, // Animate over 12 seconds
+                  essential: true // This animation is considered essential with
+                  //respect to prefers-reduced-motion
+                });
+              }}>
+              <FaRedo className={`${useAlias ? 'text-gray-500' : ''}`} />
             </button>
           </div>
         )}
