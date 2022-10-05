@@ -116,8 +116,8 @@ const Home: NextPage = () => {
     map.current = mapgl;
   });
   return (
-    <div className="h-screen w-screen">
-      <div ref={mapContainer} className="map-container" />
+    <div className="fixed w-full h-full">
+      <div ref={mapContainer} className="map-container h-screen w-screen" />
 
       <button
         type="button"
